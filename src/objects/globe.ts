@@ -1,11 +1,13 @@
 import { Color, Mesh, MeshPhongMaterial, SphereGeometry, Texture } from "three"
 import { ColorsHexadecimal } from "#src/utils"
+import { Stage } from "#src/stage"
+import Config from "#src/config"
 
-export const createGlobe = (earthTexture: Texture, earthBump: Texture) => {
-  const geometry = new SphereGeometry(1, 64, 64)
+export const createGlobe = (stage: Stage, options: { map: Texture, bumpMap: Texture }) => {
+  const geometry = new SphereGeometry(Config.globe.radius, 64, 64)
   const material = new MeshPhongMaterial({ 
-    map: earthTexture,
-    // bumpMap: earthBump,
+    map: options.map,
+    // bumpMap: options.bumpMap,
     // bumpScale: 1,
     specular: new Color(ColorsHexadecimal.Secondary).multiplyScalar(0.5),
     shininess: 5
@@ -13,10 +15,16 @@ export const createGlobe = (earthTexture: Texture, earthBump: Texture) => {
 
   const mesh = new Mesh(geometry, material)
 
-  const dispose= () => {
+  const dispose = () => {
+    stage.group.remove(mesh)
+    stage.events.removeEventListener("dispose", dispose)
+    
     material.dispose()
     geometry.dispose()
   }
+  
+  stage.group.add(mesh)
+  stage.events.addEventListener("dispose", dispose)
 
-  return { mesh, geometry,dispose }
+  // return { mesh, geometry }
 }

@@ -1,12 +1,8 @@
-import { BufferGeometry, Color, CylinderGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshPhongMaterial, SphereGeometry, Vector3 } from "three"
+import { Stage } from "#src/stage"
+import { Color, CylinderGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshPhongMaterial, Vector3 } from "three"
+import Config from "#src/config"
 
-type HexagonData = {
-  position: Vector3,
-  height: number,
-  color: Color
-}
-
-export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number = 1000) => {
+export const createHexagonMesh = (stage: Stage, options: { count: number }) => {
   const hexGeometry = new CylinderGeometry(0.002, 0.002, 1, 6)
   hexGeometry.rotateX(Math.PI / 2)
 
@@ -14,18 +10,18 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
     vertexColors: true
   })
 
-  const mesh = new InstancedMesh(hexGeometry, material, count)
+  const mesh = new InstancedMesh(hexGeometry, material, options.count)
   mesh.instanceMatrix.setUsage(DynamicDrawUsage)
+  mesh.instanceMatrix.needsUpdate = true
 
-  const radius = sphereGeometry.parameters.radius
   const matrix = new Matrix4()
   const positions: Vector3[] = []
   const goldenRatio = (1 + Math.sqrt(5)) / 2
   const angleIncrement = Math.PI * 2 * goldenRatio
 
   // Initialize with even distribution
-  for (let i = 0; i < count; i++) {
-    const t = i / count
+  for (let i = 0; i < options.count; i++) {
+    const t = i / options.count
     const inclination = Math.acos(1 - 2 * t)
     const azimuth = angleIncrement * i
 
@@ -33,7 +29,7 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
     const y = Math.sin(inclination) * Math.sin(azimuth)
     const z = Math.cos(inclination)
 
-    const pos = new Vector3(x, y, z).multiplyScalar(radius)
+    const pos = new Vector3(x, y, z).multiplyScalar(Config.globe.radius)
     positions.push(pos)
 
     const dummy = pos.clone().multiplyScalar(1.01)
@@ -43,13 +39,11 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
     mesh.setMatrixAt(i, matrix)
   }
 
-  mesh.instanceMatrix.needsUpdate = true
-
   const setData = (data: number[]) => {
-    const colorArray = new Float32Array(count * 3)
+    const colorArray = new Float32Array(options.count * 3)
 
     data.forEach((value, i) => {
-      if (i >= count) return
+      if (i >= options.count) return
 
       matrix.lookAt(positions[i], new Vector3(0, 0, 0), new Vector3(0, 1, 0))
       matrix.setPosition(positions[i])
@@ -71,8 +65,8 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
   }
 
   const generateMockPopulationData = (): number[] => {
-    const data = new Array(count).fill(0)
-    
+    const data = new Array(options.count).fill(0)
+
     // Define population centers (lat, lon in radians)
     const centers = [
       { lat: 0.87, lon: 0.35, intensity: 0.9 },  // Europe
@@ -83,8 +77,8 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
       { lat: -0.5, lon: 2.5, intensity: 0.65 },  // Southeast Asia
       { lat: 0.0, lon: 0.6, intensity: 0.6 },    // Africa
     ]
-    
-    for (let i = 0; i < count; i++) {
+
+    for (let i = 0; i < options.count; i++) {
       const pos = positions[i]
       
       // Convert to spherical coordinates
@@ -113,9 +107,15 @@ export const createHexagonMesh = (sphereGeometry: SphereGeometry, count: number 
   }
 
   const dispose = () => {
+    stage.group.remove(mesh)
+    stage.events.removeEventListener("dispose", dispose)
+
     hexGeometry.dispose()
     material.dispose()
   }
 
-  return { mesh, setData, dispose, generateMockPopulationData}
+  stage.group.add(mesh)
+  stage.events.addEventListener("dispose", dispose)
+
+  return { setData, generateMockPopulationData}
 }

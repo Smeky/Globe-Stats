@@ -1,6 +1,6 @@
 import { createCountryBorders } from "#src/objects/borders"
 import { createGlobe } from "#src/objects/globe"
-import { createHexagonMesh } from "#src/objects/hexagons"
+// import { createHexagonMesh } from "#src/objects/hexagons"
 import { createStage } from "#src/stage"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useRef, useState } from "react"
@@ -32,33 +32,15 @@ function Home() {
     const earthBump = textureLoader.load('/assets/earth-topology.png')
 
     const stage = createStage(containerRef.current)
-    const globe = createGlobe(earthTexture, earthBump)
     
-    createCountryBorders(globe.geometry.parameters.radius * 1.001)
-      .then(({ group: bordersGroup, countries }) => {
-        stage.scene.add(bordersGroup)
-        bordersGroup.userData.countries = countries
-        bordersGroup.children.forEach(country => {
-          country.userData.radius = globe.geometry.parameters.radius * 1.001
-        })
-        bordersGroup.children.forEach(country => {
-          country.children.forEach(line => {
-            line.userData.radius = globe.geometry.parameters.radius * 1.001
-          })
-        })
-      })
-    // const hexagons = createHexagonMesh(globe.geometry, 50000)
+    createGlobe(stage, { map: earthTexture, bumpMap: earthBump })
+    createCountryBorders(stage)
+
+    // const hexagons = createHexagonMesh(stage, { count: 100000 })
     // hexagons.setData(hexagons.generateMockPopulationData())
 
-    stage.scene.add(globe.mesh)
-    // stage.scene.add(hexagons.mesh)
-
     const update = () => {
-      // globe.mesh.rotation.y += 0.0005
-      // hexagons.mesh.rotation.y += 0.0005
-
       stage.update()
-
       animationId = requestAnimationFrame(update)
     }
 
@@ -72,8 +54,6 @@ function Home() {
 
       cancelAnimationFrame(animationId)
 
-      globe.dispose()
-      // hexagons.dispose()
       stage.dispose()
       
       earthTexture.dispose()
