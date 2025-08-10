@@ -2,3 +2,5 @@ node_modules/
 dist/
 build/
 raw_data/
+.output/
+.nitro/

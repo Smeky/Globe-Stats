@@ -5,6 +5,7 @@ export function createRouter() {
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
+    basepath: import.meta.env.DEV ? "/" : "/globe-stats/",
   })
 
   return router
