@@ -1,6 +1,5 @@
 import { createCountryBorders } from "#src/objects/borders"
 import { createGlobe } from "#src/objects/globe"
-// import { createHexagonMesh } from "#src/objects/hexagons"
 import { createStage } from "#src/stage"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useRef, useState } from "react"
@@ -36,7 +35,7 @@ function Home() {
     createGlobe(stage, { map: earthTexture, bumpMap: earthBump })
     createCountryBorders(stage)
 
-    // const hexagons = createHexagonMesh(stage, { count: 100000 })
+    // const hexagons = createHexagonMesh(stage, { count: 200000 })
     // hexagons.setData(hexagons.generateMockPopulationData())
 
     const update = () => {

@@ -1,4 +1,4 @@
-import { AmbientLight, Color, DirectionalLight, EventDispatcher, Group, PerspectiveCamera, Scene, WebGLRenderer } from "three"
+import { AmbientLight, Color, DirectionalLight, EventDispatcher, Group, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
 export type Stage = ReturnType<typeof createStage>
@@ -31,12 +31,23 @@ export const createStage = (containerEl: HTMLDivElement) => {
 
   const events = new EventDispatcher<StageEvents>()
 
-  const group = new Group() // Root group for objects (receives rotation, etc.)
+  const group = new Group()
   scene.add(group)
 
-  const update = () => {
-    // group.rotation.y += 0.001
+  const raycaster = new Raycaster()
+  const mouse = new Vector2()
 
+  const handlePointerMove = (event: MouseEvent) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    raycaster.setFromCamera(mouse, camera)
+    
+    events.dispatchEvent({ type: "pointermove", data: event })
+  }
+
+  window.addEventListener("pointermove", handlePointerMove)
+
+  const update = () => {
     controls.update()
     renderer.render(scene, camera)
   }
@@ -48,6 +59,7 @@ export const createStage = (containerEl: HTMLDivElement) => {
   }
 
   const dispose = () => {
+    window.removeEventListener("pointermove", handlePointerMove)
     containerEl.removeChild(renderer.domElement)
 
     events.dispatchEvent({ type: "dispose" })
@@ -56,5 +68,5 @@ export const createStage = (containerEl: HTMLDivElement) => {
     renderer.dispose()
   }
 
-  return { scene, camera, renderer, controls, events, lights, group, update, resize, dispose }
+  return { scene, camera, renderer, controls, events, lights, group, raycaster, update, resize, dispose }
 }

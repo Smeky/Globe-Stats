@@ -38,9 +38,10 @@ export const createHexagonMesh = (stage: Stage, options: { count: number }) => {
 
     mesh.setMatrixAt(i, matrix)
   }
-
+  
   const setData = (data: number[]) => {
     const colorArray = new Float32Array(options.count * 3)
+    const baseColor = { r: 0x1d / 255, g: 0x2d / 255, b: 0x44 / 255 }
 
     data.forEach((value, i) => {
       if (i >= options.count) return
@@ -53,11 +54,10 @@ export const createHexagonMesh = (stage: Stage, options: { count: number }) => {
 
       mesh.setMatrixAt(i, matrix)
 
-      const hue = value * 0.3
-      const color = new Color().setHSL(hue, 0.8, 0.5)
-      colorArray[i * 3] = color.r
-      colorArray[i * 3 + 1] = color.g
-      colorArray[i * 3 + 2] = color.b
+      const t = Math.min(value / 0.5, 1)
+      colorArray[i * 3] = baseColor.r + (1 - baseColor.r) * t
+      colorArray[i * 3 + 1] = baseColor.g * (1 - t)
+      colorArray[i * 3 + 2] = baseColor.b * (1 - t)
     })
 
     mesh.instanceMatrix.needsUpdate = true
@@ -96,7 +96,7 @@ export const createHexagonMesh = (stage: Stage, options: { count: number }) => {
         
         // Gaussian falloff
         const influence = center.intensity * Math.exp(-distance * distance * 20)
-        maxInfluence = Math.max(maxInfluence, influence)
+        maxInfluence = Math.max(maxInfluence, influence) * 0.8
       }
       
       // Add small random variation
