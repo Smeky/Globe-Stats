@@ -79,6 +79,8 @@ const highlightCountry = (country: ExtendedCountry | null, previousCountry: Exte
       const material = line.material as LineBasicMaterial
       material.color.set(0xff0000)
       material.opacity = 0.6
+      material.depthTest = true
+      line.renderOrder = 0
     })
   }
 
@@ -87,6 +89,8 @@ const highlightCountry = (country: ExtendedCountry | null, previousCountry: Exte
       const material = line.material as LineBasicMaterial
       material.color.set(0xffffff)
       material.opacity = 1
+      material.depthTest = false
+      line.renderOrder = 100
     })
   }
 }
