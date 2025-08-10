@@ -1,7 +1,7 @@
 import { BufferGeometry, Line, LineBasicMaterial, Vector3, Group, Mesh, MeshBasicMaterial, Shape, ShapeGeometry, DoubleSide, Vector2 } from "three"
 import { Stage } from "#src/stage"
 import { Country, CountryMap, MultiPolygonCoords, PolygonCoords } from "#src/countries"
-import Config from "#src/config"
+import { Config } from "#src/config"
 
 type ExtendedCountry = Country & {
   group: Group,

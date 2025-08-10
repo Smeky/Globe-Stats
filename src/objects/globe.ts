@@ -1,7 +1,7 @@
 import { Color, Mesh, MeshPhongMaterial, SphereGeometry, Texture } from "three"
 import { ColorsHexadecimal } from "#src/utils"
 import { Stage } from "#src/stage"
-import Config from "#src/config"
+import { Config } from "#src/config"
 
 export const createGlobe = (stage: Stage, options: { map: Texture, bumpMap: Texture }) => {
   const geometry = new SphereGeometry(Config.globe.radius, 64, 64)
