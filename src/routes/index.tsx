@@ -1,4 +1,5 @@
-import { createCountryBorders } from "#src/objects/borders"
+import { loadCountries } from "#src/countries"
+import { createCountryShapes } from "#src/objects/countries"
 import { createGlobe } from "#src/objects/globe"
 import { createStage } from "#src/stage"
 import { createFileRoute } from "@tanstack/react-router"
@@ -24,19 +25,21 @@ function Home() {
   useEffect(() => {
     if (!containerRef.current) return
 
-    let animationId: number
-
     const textureLoader = new TextureLoader()
     const earthTexture = textureLoader.load('/assets/earth.jpg')
     const earthBump = textureLoader.load('/assets/earth-topology.png')
 
+    const countries = loadCountries()
+
     const stage = createStage(containerRef.current)
     
     createGlobe(stage, { map: earthTexture, bumpMap: earthBump })
-    createCountryBorders(stage)
+    createCountryShapes(stage, countries)
 
     // const hexagons = createHexagonMesh(stage, { count: 200000 })
     // hexagons.setData(hexagons.generateMockPopulationData())
+
+    let animationId: number
 
     const update = () => {
       stage.update()
