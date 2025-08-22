@@ -24,6 +24,7 @@ export const Route = createRootRoute({
     links: [
       {
         rel: "preload stylesheet",
+        as: "style",
         href: tailwindCssHref,
       },
     ],

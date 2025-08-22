@@ -1,5 +1,5 @@
-import { loadCountries } from "#src/countries"
-import { createCountryShapes } from "#src/objects/countries"
+import { loadCountries } from "#src/countries/utils"
+import { createCountryShapes } from "#src/countries/object"
 import { createGlobe } from "#src/objects/globe"
 import { createStage } from "#src/stage"
 import { createFileRoute } from "@tanstack/react-router"
@@ -54,8 +54,8 @@ function Home() {
 
     const stage = createStage(containerRef.current)
     stage.camera.zoom = 2.0
-    stage.controls.autoRotate = true
-    stage.controls.autoRotateSpeed = 1.5
+    // stage.controls.autoRotate = true
+    // stage.controls.autoRotateSpeed = 1.5
 
     const pointCount = 200000
     const countries = loadCountries()

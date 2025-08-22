@@ -1,24 +1,99 @@
 import { BufferGeometry, Line, LineBasicMaterial, Vector3, Group, Mesh, MeshBasicMaterial, Shape, ShapeGeometry, DoubleSide, Vector2 } from "three"
 import { Stage } from "#src/stage"
-import { Country, CountryMap, MultiPolygonCoords, PolygonCoords } from "#src/countries"
+import { Country, CountryMap, MultiPolygonCoords, PolygonCoords } from "#src/countries/utils"
 import { Config } from "#src/config"
+import { CSS2DObject } from "three/examples/jsm/Addons.js"
+import { lonLatToVector3 } from "#src/math"
 
 type ExtendedCountry = Country & {
   group: Group,
   lines: Line[],
-  shapes: Mesh[]
+  shapes: Mesh[],
+  label: CSS2DObject,
 }
 
-const lonLatToVector3 = (lon: number, lat: number) => {
-  const phi = (90 - lat) * Math.PI / 180
-  const theta = (lon + 180) * Math.PI / 180
-  const radius = Config.globe.radius * 1.001
+// const getCountryCenter = (country: Country): Vector3 => {
+//   const getPolygonArea = (coords: PolygonCoords): number => {
+//     let area = 0
+//     for (let i = 0; i < coords.length - 1; i++) {
+//       area += coords[i][0] * coords[i + 1][1] - coords[i + 1][0] * coords[i][1]
+//     }
+//     return Math.abs(area / 2)
+//   }
 
-  return new Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
-  )
+//   const getCentroid = (coords: PolygonCoords): [number, number] => {
+//     let cx = 0, cy = 0, area = 0
+//     for (let i = 0; i < coords.length - 1; i++) {
+//       const cross = coords[i][0] * coords[i + 1][1] - coords[i + 1][0] * coords[i][1]
+//       cx += (coords[i][0] + coords[i + 1][0]) * cross
+//       cy += (coords[i][1] + coords[i + 1][1]) * cross
+//       area += cross
+//     }
+//     area /= 2
+//     return [cx / (6 * area), cy / (6 * area)]
+//   }
+
+//   let largestPolygon: PolygonCoords | null = null
+//   let largestArea = 0
+
+//   if (country.geometry.type === "Polygon") {
+//     country.geometry.coordinates.forEach(ring => {
+//       const area = getPolygonArea(ring)
+//       if (area > largestArea) {
+//         largestArea = area
+//         largestPolygon = ring
+//       }
+//     })
+//   } else {
+//     country.geometry.coordinates.forEach(polygon => {
+//       polygon.forEach(ring => {
+//         const area = getPolygonArea(ring)
+//         if (area > largestArea) {
+//           largestArea = area
+//           largestPolygon = ring
+//         }
+//       })
+//     })
+//   }
+
+//   if (!largestPolygon) {
+//     // Fallback to simple average if something goes wrong
+//     const firstCoords = country.geometry.type === "Polygon" 
+//       ? country.geometry.coordinates[0]
+//       : country.geometry.coordinates[0][0]
+//     const mid = Math.floor(firstCoords.length / 2)
+//     const coord = firstCoords[mid]
+//     let lon: number, lat: number
+//     if (Array.isArray(coord) && coord.length >= 2 && typeof coord[0] === "number" && typeof coord[1] === "number") {
+//       lon = coord[0]
+//       lat = coord[1]
+//     } else {
+//       lon = 0
+//       lat = 0
+//     }
+//     return lonLatToVector3(lon, lat)
+//   }
+
+//   const [lon, lat] = getCentroid(largestPolygon)
+//   return lonLatToVector3(lon, lat)
+// }
+
+const createCountryLabel = (country: Country): CSS2DObject => {
+  const labelDiv = document.createElement("div")
+  labelDiv.textContent = country.name
+  labelDiv.style.color = "white"
+  labelDiv.style.fontSize = "22px"
+  labelDiv.style.fontFamily = "sans-serif"
+  labelDiv.style.padding = "4px 8px"
+  labelDiv.style.background = "rgba(0, 0, 0, 0.5)"
+  labelDiv.style.borderRadius = "4px"
+  labelDiv.style.whiteSpace = "nowrap"
+
+  const label = new CSS2DObject(labelDiv)
+  label.position.copy(country.center)
+  label.visible = false
+
+  return label
 }
 
 const createBorderLine = (points: Vector3[], material: LineBasicMaterial) => {
@@ -75,6 +150,7 @@ const createInvisibleShape = (points: Vector3[], iso3: string) => {
 
 const highlightCountry = (country: ExtendedCountry | null, previousCountry: ExtendedCountry | null) => {
   if (previousCountry) {
+    previousCountry.label.visible = false
     previousCountry.lines.forEach(line => {
       const material = line.material as LineBasicMaterial
       material.color.set(0xff0000)
@@ -85,6 +161,7 @@ const highlightCountry = (country: ExtendedCountry | null, previousCountry: Exte
   }
 
   if (country) {
+    country.label.visible = true
     country.lines.forEach(line => {
       const material = line.material as LineBasicMaterial
       material.color.set(0xffffff)
@@ -112,7 +189,7 @@ export const createCountryShapes = async (stage: Stage, countries: CountryMap) =
     const shapes: Mesh[] = []
 
     const processCoords = (coords: PolygonCoords | MultiPolygonCoords) => {
-      const points = coords.map(([lon, lat]) => lonLatToVector3(lon, lat))
+      const points = coords.map(([lon, lat]) => lonLatToVector3(lon, lat, Config.globe.radius * 1.001))
 
       const line = createBorderLine(points, lineMaterial)
       lines.push(line)
@@ -131,6 +208,9 @@ export const createCountryShapes = async (stage: Stage, countries: CountryMap) =
       )
     }
 
+    const label = createCountryLabel(country)
+    group.add(label)
+
     group.userData = { iso3: country.iso3 }
     borderGroup.add(group)
 
@@ -138,7 +218,8 @@ export const createCountryShapes = async (stage: Stage, countries: CountryMap) =
       ...country,
       group,
       lines,
-      shapes
+      shapes,
+      label,
     })
   })
 
