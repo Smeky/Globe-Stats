@@ -59,7 +59,7 @@ function Home() {
 
     const pointCount = 200000
     const countries = loadCountries()
-    const positions = generateGoldenSpiralPositions(pointCount, 1.01 * Config.globe.radius)
+    const positions = generateGoldenSpiralPositions(pointCount, 1.001 * Config.globe.radius)
     const hexagons = createHexagonMesh(stage, { positions })
 
     loadPopulationData("/data/pop_aggregated_2020.tif", positions, Config.globe.radius)

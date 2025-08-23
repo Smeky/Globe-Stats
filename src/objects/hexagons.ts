@@ -58,7 +58,8 @@ export const createHexagonMesh = (stage: Stage, options: { positions: Vector3[] 
   const setData = (data: number[]) => {
     const colorArray = new Float32Array(options.positions.length * 3)
     const visibilityArray = new Float32Array(options.positions.length)
-    const baseColor = { r: 0x1d / 255, g: 0x2d / 255, b: 0x44 / 255 }
+    const baseColor = { r: 1, g: 1, b: 180 / 255 }
+    // const baseColor = { r: 0, g: 0, b: 0 }
 
     data.forEach((value, i) => {
       if (i >= options.positions.length) return
@@ -69,12 +70,12 @@ export const createHexagonMesh = (stage: Stage, options: { positions: Vector3[] 
       matrix.lookAt(options.positions[i], new Vector3(0, 0, 0), new Vector3(0, 1, 0))
       matrix.setPosition(options.positions[i])
 
-      const scale = new Vector3(1, 1, value * 0.5)
+      const scale = new Vector3(1, 1, value * 0.35)
       matrix.scale(scale)
 
       mesh.setMatrixAt(i, matrix)
 
-      const t = Math.min(value / 0.5, 1)
+      const t = Math.pow(Math.min(value, 1) * 1.8, 0.5)
       colorArray[i * 3] = baseColor.r + (1 - baseColor.r) * t
       colorArray[i * 3 + 1] = baseColor.g * (1 - t)
       colorArray[i * 3 + 2] = baseColor.b * (1 - t)
